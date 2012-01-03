@@ -11,6 +11,7 @@ import re
 import shutil
 import stat
 import sys
+import unicodedata
 
 import time
 from datetime import datetime
@@ -352,7 +353,12 @@ end tell
                 return
 
         if not self.test:
-            shutil.copy2(mFilePath, tFilePath)
+            try:
+                shutil.copy2(mFilePath, tFilePath)
+            except IOError:
+                # Try a different Unicode Normal Form, just in case mFilePath uses NFD...
+                # Ref: http://unicode.org/reports/tr15/#Norm_Forms
+                shutil.copy2(unicodedata.normalize('NFC', mFilePath), tFilePath)
         md_written = False
         if self.use_metadata:
             md_written = self.writePhotoMD(imageId, tFilePath)
